@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login - Hostel Room Allocation Management System</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22><text y=%2226%22 font-size=%2226%22>🏨</text></svg>">
+</head>
+<body class="login-body">
+
+  <div class="login-wrapper">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-logo">🏨</div>
+        <h2>Hostel Allocation Portal</h2>
+        <p>College Administration & Housing Management</p>
+      </div>
+
+      <div class="login-body-content">
+        <!-- Demo Credentials Box -->
+        <div class="demo-credentials-box">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <strong>Demo Credentials:</strong>
+            <span style="font-size:11px; background:#BBDEFB; padding:2px 6px; border-radius:4px;">1-Click Login</span>
+          </div>
+          <div style="margin-top:6px;">
+            Username: <code>admin</code> | Password: <code>admin123</code>
+          </div>
+          <div class="demo-pills">
+            <button type="button" class="demo-pill" onclick="autoFillDemo('admin', 'admin123')">
+              ⚡ Auto-Fill Credentials
+            </button>
+          </div>
+        </div>
+
+        {% if error %}
+        <div style="background:var(--color-light-red); border:1px solid #FFCDD2; color:var(--color-red); padding:10px 14px; border-radius:var(--border-radius-sm); margin-bottom:18px; font-size:13px;">
+          ⚠️ {{ error }}
+        </div>
+        {% endif %}
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div style="background:var(--color-light-blue); border:1px solid #BBDEFB; color:var(--color-blue); padding:10px 14px; border-radius:var(--border-radius-sm); margin-bottom:18px; font-size:13px;">
+                ℹ️ {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('login') }}" method="POST">
+          <div class="form-group" style="margin-bottom:16px;">
+            <label class="form-label" for="username">Username <span class="req">*</span></label>
+            <input 
+              type="text" 
+              id="username" 
+              name="username" 
+              class="form-control" 
+              placeholder="Enter admin username" 
+              required
+              autofocus
+            >
+          </div>
+
+          <div class="form-group" style="margin-bottom:22px;">
+            <label class="form-label" for="password">Password <span class="req">*</span></label>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              class="form-control" 
+              placeholder="Enter password" 
+              required
+            >
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block" style="padding:12px; font-size:15px;">
+            Sign In to Dashboard →
+          </button>
+        </form>
+
+        <div style="text-align:center; margin-top:20px; font-size:12px; color:var(--color-text-muted);">
+          Data Structure Project: <strong>FIFO Queue</strong> with <code>collections.deque</code>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function autoFillDemo(u, p) {
+      document.getElementById('username').value = u;
+      document.getElementById('password').value = p;
+    }
+  </script>
+</body>
+</html>
