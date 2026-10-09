@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hostel Room Allocation Management System - Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22><text y=%2226%22 font-size=%2226%22>🏨</text></svg>">
+</head>
+<body>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <div class="app-container">
+    
+    <!-- ====================================================================
+         SIDEBAR NAVIGATION
+         ==================================================================== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">🏨</div>
+        <div class="brand-title">
+          <span>HOSTEL PORTAL</span>
+          <span>Room Allocation System</span>
+        </div>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li class="menu-category">Main Operations</li>
+        <li>
+          <a class="nav-link-btn active" data-tab="dashboard">
+            <span class="nav-left">
+              <span class="nav-icon">📊</span>
+              <span class="nav-text">Dashboard</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="nav-link-btn" data-tab="register">
+            <span class="nav-left">
+              <span class="nav-icon">📝</span>
+              <span class="nav-text">Student Registration</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="nav-link-btn" data-tab="allocation">
+            <span class="nav-left">
+              <span class="nav-icon">📋</span>
+              <span class="nav-text">Room Allocation</span>
+            </span>
+            <span class="badge badge-available" id="badgeAvailableCountSidebar">{{ data.metrics.available_rooms_count }} Free</span>
+          </a>
+        </li>
+        <li>
+          <a class="nav-link-btn" data-tab="queue">
+            <span class="nav-left">
+              <span class="nav-icon">⏳</span>
+              <span class="nav-text">Waiting Queue</span>
+            </span>
+            <span class="badge badge-occupied" id="badgeWaitingCountSidebar">{{ data.metrics.waiting_count }}</span>
+          </a>
+        </li>
+        <li>
+          <a class="nav-link-btn" data-tab="cancel">
+            <span class="nav-left">
+              <span class="nav-icon">❌</span>
+              <span class="nav-text">Cancel Allocation</span>
+            </span>
+          </a>
+        </li>
+
+        <li class="menu-category">Management & Discovery</li>
+        <li>
+          <a class="nav-link-btn" data-tab="search">
+            <span class="nav-left">
+              <span class="nav-icon">🔍</span>
+              <span class="nav-text">Search Student / Room</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="nav-link-btn" data-tab="rooms">
+            <span class="nav-left">
+              <span class="nav-icon">🚪</span>
+              <span class="nav-text">Hostel Room Status</span>
+            </span>
+          </a>
+        </li>
+
+        <li class="menu-category">Data Structure & Viva</li>
+        <li>
+          <a class="nav-link-btn" data-tab="viva">
+            <span class="nav-left">
+              <span class="nav-icon">🎓</span>
+              <span class="nav-text">Data Structure (Viva)</span>
+            </span>
+            <span class="badge" style="background:#FFE082; color:#5D4037; font-weight:700;">FIFO</span>
+          </a>
+        </li>
+        <li>
+          <a class="nav-link-btn" data-tab="test-scenario">
+            <span class="nav-left">
+              <span class="nav-icon">🧪</span>
+              <span class="nav-text">Demo Scenario Tester</span>
+            </span>
+            <span class="badge" style="background:#C8E6C9; color:#1B5E20; font-weight:700;">10+2 Test</span>
+          </a>
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <div class="user-profile-badge">
+          <div class="avatar">AD</div>
+          <div class="user-info">
+            <div class="user-name">Hostel Warden (Admin)</div>
+            <div class="user-role">Administrator Portal</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ====================================================================
+         MAIN CONTENT AREA
+         ==================================================================== -->
+    <main class="main-wrapper">
+      
+      <!-- Top Bar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle navigation">☰</button>
+          <div class="topbar-title" id="topbar-page-title">Dashboard Overview</div>
+          <div class="topbar-pill-badge">
+            <span class="status-indicator-dot"></span>
+            <span>Live Queue Active</span>
+          </div>
+          <div class="topbar-pill-badge" id="topbarWaitingPill" style="background:var(--color-light-red); border-color:#FFCDD2; color:var(--color-red);">
+            Waiting Queue: {{ data.metrics.waiting_count }}
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <button class="btn btn-outline-primary btn-sm" onclick="switchTab('test-scenario')">
+            ⚡ Quick Test Scenario
+          </button>
+          <a href="{{ url_for('logout') }}" class="btn-header-action" title="Logout">
+            <span>🚪</span>
+            <span>Logout</span>
+          </a>
+        </div>
+      </header>
+
+      <!-- Content Area -->
+      <div class="content-area">
+
+        <!-- ================================================================
+             SECTION 1: DASHBOARD OVERVIEW
+             ================================================================ -->
+        <section class="view-section active" id="section-dashboard">
+          
+          <!-- Metric Statistics Cards -->
+          <div class="stats-grid">
+            <div class="stat-card card-dark">
+              <div class="stat-info">
+                <div class="stat-label">Total Rooms</div>
+                <div class="stat-value" id="metricTotalRooms">{{ data.metrics.total_rooms }}</div>
+                <div class="stat-sub">Hostel Wing A & B</div>
+              </div>
+              <div class="stat-icon">🏢</div>
+            </div>
+
+            <div class="stat-card card-green">
+              <div class="stat-info">
+                <div class="stat-label">Available Rooms</div>
+                <div class="stat-value" id="metricAvailableRooms">{{ data.metrics.available_rooms_count }}</div>
+                <div class="stat-sub">Ready for allocation</div>
+              </div>
+              <div class="stat-icon">✅</div>
+            </div>
+
+            <div class="stat-card card-red">
+              <div class="stat-info">
+                <div class="stat-label">Occupied Rooms</div>
+                <div class="stat-value" id="metricOccupiedRooms">{{ data.metrics.occupied_rooms_count }}</div>
+                <div class="stat-sub">Active residents</div>
+              </div>
+              <div class="stat-icon">🚪</div>
+            </div>
+
+            <div class="stat-card card-warning">
+              <div class="stat-info">
+                <div class="stat-label">Waiting Queue</div>
+                <div class="stat-value" id="metricWaitingCount">{{ data.metrics.waiting_count }}</div>
+                <div class="stat-sub">FIFO Enqueued Students</div>
+              </div>
+              <div class="stat-icon">⏳</div>
+            </div>
+
+            <div class="stat-card card-blue">
+              <div class="stat-info">
+                <div class="stat-label">Allocated Students</div>
+                <div class="stat-value" id="metricTotalAllocated">{{ data.metrics.total_allocated_students }}</div>
+                <div class="stat-sub">Total successfully housed</div>
+              </div>
+              <div class="stat-icon">🎓</div>
+            </div>
+          </div>
+
+          <!-- Quick Action Banner -->
+          <div class="action-banner">
+            <div class="action-banner-text">
+              <h3>⚡ FIFO Queue Allocation Active</h3>
+              <p>Rooms are allocated strictly in registration order. When full, students wait in FIFO queue; cancellations auto-trigger <code>popleft()</code>.</p>
+            </div>
+            <div class="banner-button-group">
+              <button class="btn btn-primary btn-sm" onclick="switchTab('register')" style="background:#FFFFFF; color:var(--color-blue); font-weight:700;">
+                + Register New Student
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="switchTab('cancel')" style="background:var(--color-red); color:#FFFFFF;">
+                Cancel / Release Room
+              </button>
+            </div>
+          </div>
+
+          <!-- Queue Visualizer Preview Box -->
+          <div class="queue-card-container">
+            <div class="queue-header-row">
+              <div class="queue-title-badge">
+                <span style="font-size:18px;">⏳</span>
+                <h3 style="font-size:16px;">Waiting Queue Visualizer</h3>
+                <span class="badge-fifo">FIFO Order</span>
+                <span class="badge-counter" id="dashQueueCount">{{ data.metrics.waiting_count }} in Line</span>
+              </div>
+              <div>
+                <button class="btn btn-outline-primary btn-sm" onclick="switchTab('queue')">
+                  View Full Queue Table →
+                </button>
+              </div>
+            </div>
+
+            <!-- Dynamic visual pipe rendered via script.js -->
+            <div id="queueVisualPipe" class="queue-visual-track">
+              <!-- Rendered dynamically -->
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; font-size:12.5px; color:var(--color-text-muted);">
+              <div>
+                <strong>FRONT (Head):</strong> <code>waiting_queue.popleft()</code> will receive the next available room immediately.
+              </div>
+              <div>
+                <strong>REAR (Tail):</strong> New student registrations are added via <code>waiting_queue.append()</code>.
+              </div>
+            </div>
+          </div>
+
+          <!-- Two-column Row: Recent Activity & Quick Room Summary -->
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:20px;">
+            
+            <!-- Recent Events -->
+            <div class="table-card" style="margin-bottom:0;">
+              <div class="table-card-header">
+                <h3><span>📜</span> Recent Allocation Activity</h3>
+                <span style="font-size:11px; color:#64748B;">FIFO Audit Stream</span>
+              </div>
+              <div style="padding:18px 22px; max-height:340px; overflow-y:auto;" id="recentActivityStream">
+                <!-- Dynamically rendered -->
+              </div>
+            </div>
+
+            <!-- Quick DS Concept Summary -->
+            <div class="table-card" style="margin-bottom:0; background:#FAFAFA;">
+              <div class="table-card-header">
+                <h3><span>💡</span> Why Queue for Room Allocation?</h3>
+                <span class="badge" style="background:#E3F2FD; color:#1565C0;">Data Structure Logic</span>
+              </div>
+              <div style="padding:20px; font-size:13.5px; line-height:1.6; color:var(--color-text-main);">
+                <p style="margin-bottom:12px;">
+                  In college hostels, fairness requires that <strong>the student who requested a room first must be the first one to receive it</strong>.
+                </p>
+                <div style="background:var(--color-white); border:1px solid #E2E8F0; border-radius:8px; padding:12px 14px; margin-bottom:12px;">
+                  <ul style="padding-left:18px; margin:0;">
+                    <li><strong>enqueue()</strong>: Student arrives when hostel is full &rarr; joins tail of queue.</li>
+                    <li><strong>dequeue()</strong>: Room released &rarr; head student receives it.</li>
+                    <li><strong>Time Complexity</strong>: Both operations are <code>O(1)</code> using <code>collections.deque</code>.</li>
+                  </ul>
+                </div>
+                <button class="btn btn-outline-primary btn-sm btn-block" onclick="switchTab('viva')">
+                  Explore Academic / Viva Voce Section →
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- ================================================================
+             SECTION 2: STUDENT REGISTRATION
+             ================================================================ -->
+        <section class="view-section" id="section-register">
+          
+          <div class="form-card">
+            <div class="form-title-row">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3>📝 Student Hostel Registration</h3>
+                <span class="badge" style="background:#E3F2FD; color:#1565C0; font-size:12px;">FIFO Process</span>
+              </div>
+              <p>Register a student for room allocation. If rooms are vacant, allocation is immediate. If full, the student is automatically appended to the waiting queue.</p>
+            </div>
+
+            <!-- Quick sample auto-fill helpers -->
+            <div style="background:#F8FAFC; border:1px dashed #CBD5E1; border-radius:8px; padding:12px 16px; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+              <span style="font-size:12.5px; color:#475569; font-weight:600;">⚡ Quick Demo Auto-Fill:</span>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="fillSampleStudent(1)">Student: Vikram (CSE)</button>
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="fillSampleStudent(2)">Student: Meera (IT)</button>
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="fillSampleStudent(3)">Student: Siddharth (ECE)</button>
+              </div>
+            </div>
+
+            <form id="studentRegistrationForm">
+              <div class="form-grid">
+                
+                <div class="form-group">
+                  <label class="form-label" for="reg_student_id">Student ID / Roll No <span class="req">*</span></label>
+                  <input type="text" id="reg_student_id" class="form-control" placeholder="e.g. 23CS045" required>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="reg_student_name">Student Full Name <span class="req">*</span></label>
+                  <input type="text" id="reg_student_name" class="form-control" placeholder="e.g. Arun Kumar" required>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="reg_dept">Department <span class="req">*</span></label>
+                  <select id="reg_dept" class="form-control">
+                    <option value="CSE">Computer Science & Engineering (CSE)</option>
+                    <option value="IT">Information Technology (IT)</option>
+                    <option value="ECE">Electronics & Communication (ECE)</option>
+                    <option value="MECH">Mechanical Engineering (MECH)</option>
+                    <option value="EEE">Electrical & Electronics (EEE)</option>
+                    <option value="CIVIL">Civil Engineering (CIVIL)</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="reg_year">Academic Year <span class="req">*</span></label>
+                  <select id="reg_year" class="form-control">
+                    <option value="1st Year">1st Year</option>
+                    <option value="2nd Year" selected>2nd Year</option>
+                    <option value="3rd Year">3rd Year</option>
+                    <option value="4th Year">4th Year</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="reg_phone">Phone Number <span class="req">*</span></label>
+                  <input type="tel" id="reg_phone" class="form-control" placeholder="e.g. 9876543210" required>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="reg_gender">Gender <span class="req">*</span></label>
+                  <select id="reg_gender" class="form-control">
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div class="form-group full-width">
+                  <label class="form-label" for="reg_pref_type">Preferred Room Type</label>
+                  <select id="reg_pref_type" class="form-control">
+                    <option value="2 Sharing">2 Sharing (Standard)</option>
+                    <option value="3 Sharing">3 Sharing (Spacious)</option>
+                    <option value="Single">Single Room (Premium)</option>
+                  </select>
+                </div>
+
+              </div>
+
+              <div style="margin-top:24px; display:flex; gap:12px;">
+                <button type="submit" class="btn btn-primary" style="flex:1; padding:12px; font-size:14.5px;">
+                  Register Student (Queue Allocator)
+                </button>
+                <button type="reset" class="btn btn-outline-primary" style="padding:12px 20px;">
+                  Reset
+                </button>
+              </div>
+            </form>
+
+            <div style="margin-top:20px; font-size:12.5px; color:#64748B; background:#F8FAFC; border-radius:6px; padding:12px;">
+              <strong>System Behavior:</strong>
+              <br>• If rooms are available: <code>available_rooms.popleft()</code> &rarr; Room is immediately allocated.
+              <br>• If all rooms are occupied: <code>waiting_queue.append(student)</code> &rarr; Student enters Waiting Queue.
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ================================================================
+             SECTION 3: ROOM ALLOCATION TABLE
+             ================================================================ -->
+        <section class="view-section" id="section-allocation">
+          
+          <div class="table-card">
+            <div class="table-card-header">
+              <div>
+                <h3><span>📋</span> Master Room Allocation Table</h3>
+                <p style="font-size:12.5px; color:var(--color-text-muted); margin-top:2px;">
+                  All 10 hostel rooms with live occupant details and status badges.
+                </p>
+              </div>
+              <div style="display:flex; gap:10px;">
+                <button class="btn btn-primary btn-sm" onclick="switchTab('register')">
+                  + Allocate Room
+                </button>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Room No</th>
+                    <th>Room Type</th>
+                    <th>Status</th>
+                    <th>Student ID</th>
+                    <th>Student Name</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="roomAllocationTableBody">
+                  <!-- Rendered dynamically via script.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ================================================================
+             SECTION 4: WAITING QUEUE (THE CORE DATA STRUCTURE SECTION)
+             ================================================================ -->
+        <section class="view-section" id="section-queue">
+          
+          <!-- Banner highlighting FIFO principle -->
+          <div class="action-banner" style="background:linear-gradient(135deg, #0B1F3A 0%, #1565C0 100%);">
+            <div>
+              <span class="badge" style="background:#FFCDD2; color:#B71C1C; margin-bottom:6px;">Data Structure: Queue</span>
+              <h2 style="color:#FFFFFF; font-size:20px; margin-bottom:4px;">
+                FIFO Queue — First Registered Student Gets Room First
+              </h2>
+              <p style="color:#E3F2FD; font-size:13.5px;">
+                Demonstrating <code>collections.deque</code> with constant time <code>O(1)</code> enqueue (<code>append</code>) and dequeue (<code>popleft</code>).
+              </p>
+            </div>
+          </div>
+
+          <!-- Visual Queue Representation -->
+          <div class="queue-card-container">
+            <div class="queue-header-row">
+              <div class="queue-title-badge">
+                <span style="font-size:20px;">🔄</span>
+                <h3>Live Queue Topology Representation</h3>
+              </div>
+              <div style="font-size:12px; color:var(--color-text-muted);">
+                Direction of Flow: <strong>FRONT &rarr; REAR</strong>
+              </div>
+            </div>
+
+            <!-- Visual Flow Diagram -->
+            <div id="queueVisualPipe" class="queue-visual-track">
+              <!-- Dynamically populated -->
+            </div>
+
+            <div style="background:#F1F5F9; border-radius:8px; padding:12px 16px; font-size:12.5px; color:#334155;">
+              <span style="font-weight:700; color:var(--color-blue);">Queue Mechanics:</span> 
+              When an allocated student cancels their booking, <strong>Position #1 at the FRONT</strong> is immediately dequeued using 
+              <code>waiting_queue.popleft()</code> and receives the released room without manual admin reassignment.
+            </div>
+          </div>
+
+          <!-- Waiting Queue Students Table -->
+          <div class="table-card">
+            <div class="table-card-header">
+              <h3><span>👥</span> Waiting Queue Roster</h3>
+              <span class="badge badge-occupied" id="waitingRosterCountBadge">{{ data.metrics.waiting_count }} Students Waiting</span>
+            </div>
+
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Position (FIFO)</th>
+                    <th>Student ID</th>
+                    <th>Student Name</th>
+                    <th>Department</th>
+                    <th>Registration Time</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="waitingQueueTableBody">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ================================================================
+             SECTION 5: CANCEL ROOM ALLOCATION
+             ================================================================ -->
+        <section class="view-section" id="section-cancel">
+          
+          <div class="form-card" style="border-top:5px solid var(--color-red);">
+            <div class="form-title-row">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="color:var(--color-red);">❌ Cancel Room Allocation</h3>
+                <span class="badge badge-occupied">Auto FIFO Reallocation</span>
+              </div>
+              <p>
+                When a student's room is cancelled, the room is released and the waiting queue is automatically polled. 
+                The first student (<code>waiting_queue.popleft()</code>) receives the room instantly.
+              </p>
+            </div>
+
+            <form id="cancellationForm">
+              <div class="form-group" style="margin-bottom:18px;">
+                <label class="form-label" for="cancel_identifier">Student ID or Room Number <span class="req">*</span></label>
+                <div class="search-input-wrapper" style="max-width:100%;">
+                  <span class="search-icon">🔍</span>
+                  <input 
+                    type="text" 
+                    id="cancel_identifier" 
+                    class="form-control" 
+                    placeholder="e.g. 23CS001 or A101" 
+                    required
+                  >
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-danger" style="padding:12px 24px; font-size:14px;">
+                Cancel Allocation & Process Waiting Queue
+              </button>
+            </form>
+
+            <div style="margin-top:24px; background:var(--color-light-red); border:1px solid #FFCDD2; border-radius:8px; padding:16px;">
+              <h4 style="font-size:14px; color:var(--color-red); margin-bottom:8px;">
+                ⚙️ Automatic Cancellation Workflow:
+              </h4>
+              <ol style="font-size:13px; color:#4A148C; padding-left:18px; margin:0; line-height:1.7;">
+                <li>System removes the current occupant from <code>allocated_students</code>.</li>
+                <li>Room is marked as released.</li>
+                <li>System checks <code>len(waiting_queue) > 0</code>.</li>
+                <li>If waiting students exist, it executes: <code>student = waiting_queue.popleft()</code>.</li>
+                <li>The freed room is assigned to that student immediately!</li>
+                <li>If waiting queue is empty, the room joins <code>available_rooms.append(room)</code>.</li>
+              </ol>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ================================================================
+             SECTION 6: SEARCH STUDENT
+             ================================================================ -->
+        <section class="view-section" id="section-search">
+          
+          <div class="table-card">
+            <div class="table-card-header">
+              <h3><span>🔍</span> Search Student or Room</h3>
+              <p style="font-size:12.5px; color:var(--color-text-muted);">
+                Lookup by Student ID (e.g. <code>23CS001</code>), Name (e.g. <code>Arun</code>), or Room Number (e.g. <code>A101</code>).
+              </p>
+            </div>
+
+            <div style="padding:22px;">
+              <div style="display:flex; gap:12px; max-width:600px; margin-bottom:24px;">
+                <div class="search-input-wrapper" style="flex:1;">
+                  <span class="search-icon">🔎</span>
+                  <input 
+                    type="text" 
+                    id="searchQueryInput" 
+                    class="form-control" 
+                    placeholder="Enter Student ID, Name or Room No..."
+                  >
+                </div>
+                <button type="button" id="searchSubmitBtn" class="btn btn-primary">
+                  Search
+                </button>
+              </div>
+
+              <!-- Search Results Area -->
+              <div id="searchResultsArea">
+                <div class="queue-empty-box">
+                  <div class="icon">🔍</div>
+                  <p>Type a query above to search active allocations, waiting queue students, and available rooms.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ================================================================
+             SECTION 7: HOSTEL ROOM STATUS (VISUAL ROOM CARDS)
+             ================================================================ -->
+        <section class="view-section" id="section-rooms">
+          
+          <div class="room-grid-filter-bar">
+            <div>
+              <h3 style="font-size:18px;">Hostel Rooms Status Grid</h3>
+              <p style="font-size:13px; color:var(--color-text-muted);">
+                Visual cards for rooms A101 to A110. Blue represents Available, Red represents Occupied.
+              </p>
+            </div>
+
+            <div class="filter-btn-group">
+              <button class="filter-btn active" data-filter="all">All Rooms (10)</button>
+              <button class="filter-btn" data-filter="available">Available Only</button>
+              <button class="filter-btn" data-filter="occupied">Occupied Only</button>
+            </div>
+          </div>
+
+          <!-- Dynamic Room Cards Container -->
+          <div class="room-cards-grid" id="roomCardsContainer">
+            <!-- Rendered dynamically -->
+          </div>
+
+        </section>
+
+        <!-- ================================================================
+             SECTION 8: ACADEMIC / VIVA SECTION
+             ================================================================ -->
+        <section class="view-section" id="section-viva">
+          
+          <div class="viva-container">
+            
+            <!-- Card 1: Core Concept -->
+            <div class="viva-card">
+              <h3><span>🧠</span> Data Structure Used</h3>
+              <ul class="viva-concept-list">
+                <li>
+                  <strong>Data Structure:</strong>
+                  <span>Queue (Linear Data Structure)</span>
+                </li>
+                <li>
+                  <strong>Core Principle:</strong>
+                  <span><strong>FIFO</strong> (First In &rarr; First Out)</span>
+                </li>
+                <li>
+                  <strong>Python Implementation:</strong>
+                  <span><code>from collections import deque</code></span>
+                </li>
+                <li>
+                  <strong>Internal Architecture:</strong>
+                  <span>Doubly Linked List block structure allowing O(1) appends and pops from both ends.</span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Card 2: Why Queue is Suitable -->
+            <div class="viva-card">
+              <h3><span>⚖️</span> Why Queue is Suitable for Hostel Allocation?</h3>
+              <div style="font-size:13.5px; line-height:1.6; color:#334155;">
+                <p style="margin-bottom:10px;">
+                  Students are allocated hostel rooms based strictly on their <strong>registration timestamp</strong> (order of arrival).
+                </p>
+                <p style="margin-bottom:10px;">
+                  When rooms are full, placing applicants in a FIFO Queue guarantees <strong>fairness</strong>: the first student waiting will receive the next available room that gets freed.
+                </p>
+                <div style="background:var(--color-light-blue); border-left:4px solid var(--color-blue); padding:10px 14px; border-radius:4px;">
+                  <em>"No student can skip ahead of earlier applicants, eliminating bias or starvation."</em>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 3: Code Implementation Details -->
+            <div class="viva-card full-col">
+              <h3><span>💻</span> Python Implementation & Time Complexity</h3>
+              <div class="code-preview-box">
+<span class="kw">from</span> collections <span class="kw">import</span> deque
+
+<span class="comment"># Initialize FIFO Data Structures</span>
+waiting_queue = deque()
+available_rooms = deque([<span class="str">"A101"</span>, <span class="str">"A102"</span>, <span class="str">"A103"</span>, ..., <span class="str">"A110"</span>])
+allocated_students = []
+
+<span class="comment"># 1. ENQUEUE: When hostel is full, append student to REAR (O(1))</span>
+<span class="kw">def</span> <span class="fn">enqueue_student</span>(student):
+    waiting_queue.<span class="fn">append</span>(student)  <span class="comment"># Constant time O(1)</span>
+
+<span class="comment"># 2. DEQUEUE: When a room is freed, remove student from FRONT (O(1))</span>
+<span class="kw">def</span> <span class="fn">dequeue_next_student</span>():
+    <span class="kw">if</span> len(waiting_queue) > <span class="num">0</span>:
+        next_student = waiting_queue.<span class="fn">popleft</span>()  <span class="comment"># O(1) FIFO extraction</span>
+        <span class="kw">return</span> next_student
+    <span class="kw">return</span> <span class="kw">None</span>
+
+<span class="comment"># 3. PEEK: Inspect who is at the FRONT without removing</span>
+first_in_line = waiting_queue[<span class="num">0</span>] <span class="kw">if</span> waiting_queue <span class="kw">else</span> <span class="kw">None</span>  <span class="comment"># O(1)</span>
+
+<span class="comment"># 4. isEmpty: Check if queue is empty</span>
+is_empty = (len(waiting_queue) == <span class="num">0</span>)  <span class="comment"># O(1)</span>
+              </div>
+            </div>
+
+            <!-- Card 4: collections.deque vs Python list -->
+            <div class="viva-card full-col">
+              <h3><span>⚔️</span> Viva Voce Question: Why <code>collections.deque</code> instead of Python <code>list</code>?</h3>
+              <div class="table-responsive">
+                <table class="custom-table" style="background:#FFFFFF;">
+                  <thead>
+                    <tr>
+                      <th>Operation</th>
+                      <th>Python <code>list</code></th>
+                      <th>Python <code>collections.deque</code></th>
+                      <th>Explanation</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>Enqueue (append at rear)</strong></td>
+                      <td>O(1) amortized</td>
+                      <td><strong>O(1)</strong></td>
+                      <td>Both append efficiently at the end.</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Dequeue (pop from front)</strong></td>
+                      <td style="color:var(--color-red); font-weight:700;">O(n) - SLOW</td>
+                      <td style="color:#2E7D32; font-weight:700;"><strong>O(1) - FAST</strong></td>
+                      <td><code>list.pop(0)</code> shifts every subsequent element left by 1 index in memory. <code>deque.popleft()</code> simply updates the head pointer.</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Memory Model</strong></td>
+                      <td>Contiguous array buffer</td>
+                      <td>Doubly-linked memory blocks</td>
+                      <td><code>deque</code> is purpose-built for queues and double-ended queues.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- ================================================================
+             SECTION 9: DEMO SCENARIO TESTER (10 ROOMS + 2 WAITING TEST)
+             ================================================================ -->
+        <section class="view-section" id="section-test-scenario">
+          
+          <div class="form-card" style="max-width:900px; border-top:5px solid var(--color-blue);">
+            <div class="form-title-row">
+              <h3>🧪 1-Click Verification of Required Test Scenario</h3>
+              <p>Easily load and verify the exact test condition required in the specification.</p>
+            </div>
+
+            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:18px; margin-bottom:20px;">
+              <h4 style="font-size:15px; color:var(--color-dark-blue); margin-bottom:8px;">Scenario Steps to Test:</h4>
+              <ul style="font-size:13px; line-height:1.7; color:#334155; padding-left:20px;">
+                <li><strong>Initial State:</strong> 10 rooms available (A101 - A110).</li>
+                <li><strong>Allocation:</strong> Student 1 to 10 are allocated rooms A101 to A110. (All rooms occupied)</li>
+                <li><strong>Waiting Queue:</strong> Student 11 is placed in Position #1, Student 12 in Position #2.</li>
+                <li><strong>Cancellation Action:</strong> Student 1 cancels Room A101.</li>
+                <li><strong>Automatic Result:</strong> Student 11 automatically receives Room A101 via <code>waiting_queue.popleft()</code>.</li>
+                <li><strong>Remaining Queue:</strong> Waiting Queue now has only Student 12.</li>
+              </ul>
+            </div>
+
+            <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:24px;">
+              <button type="button" id="btnLoadTestScenario" class="btn btn-primary" style="padding:12px 20px;">
+                1️⃣ Load Test Scenario (10 Allocated + 2 Waiting)
+              </button>
+              <button type="button" id="btnQuickCancelA101" class="btn btn-danger" style="padding:12px 20px;">
+                2️⃣ Cancel Room A101 (Test Auto-Allocation)
+              </button>
+              <button type="button" id="btnResetDefault" class="btn btn-outline-primary" style="padding:12px 20px;">
+                🔄 Reset to Default State
+              </button>
+            </div>
+
+            <div style="font-size:12.5px; color:var(--color-text-muted); background:var(--color-light-blue); padding:12px 14px; border-radius:6px; border:1px solid #BBDEFB;">
+              💡 <strong>Tip:</strong> Click <strong>"1️⃣ Load Test Scenario"</strong> and then navigate to the <strong>Waiting Queue</strong> tab to see the live queue topology. Then click <strong>"2️⃣ Cancel Room A101"</strong> and observe how Student 11 is instantly allocated Room A101 and leaves the queue!
+            </div>
+          </div>
+
+        </section>
+
+      </div>
+
+      <!-- ==================================================================
+           FOOTER
+           ================================================================== -->
+      <footer class="app-footer">
+        <div>
+          <strong>Hostel Room Allocation Management System</strong>
+        </div>
+        <div style="margin-top:4px;">
+          Powered by Python + Flask + Queue Data Structure (<code>collections.deque</code>)
+        </div>
+      </footer>
+
+    </main>
+
+  </div>
+
+  <!-- JavaScript Application Bundle -->
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
